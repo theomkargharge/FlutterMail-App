@@ -114,6 +114,12 @@
 
     .no-name { opacity: 0.4; font-style: italic; }
 
+    /* ── Variable chips ── */
+    .var-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: rgba(59,130,246,0.1); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); border-radius: 6px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.2s; }
+    .var-chip:hover { background: rgba(59,130,246,0.2); border-color: var(--blue); }
+    .var-chip .chip-val { color: var(--green); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .var-chip.empty .chip-val { color: var(--red); opacity: 0.6; }
+
     /* ── Responsive ── */
     @media (max-width: 640px) {
       .header-inner { flex-direction: column; align-items: flex-start; }
@@ -197,17 +203,25 @@
         </div>
       </div>
 
-      <div class="card">
-        <p style="font-size:12px;opacity:0.6;margin-bottom:12px;font-family:var(--mono)">
-          Placeholders: {{greeting}} (auto: name or 'Hiring Manager') {{hr_name}} {{company}} {{role}} {{your_name}} {{your_phone}} {{your_linkedin}}
+      <!-- Variable reference card -->
+      <div class="card" style="border-color:var(--blue);border-style:dashed">
+        <h3 class="card-title">🔗 Available Variables <span style="font-weight:400;font-size:12px;opacity:0.5">— Click any variable to copy, then paste in the template</span></h3>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px" id="variable-chips"></div>
+        <p style="font-size:12px;opacity:0.5;font-family:var(--mono)">
+          💡 <b>From your profile:</b> your_name, your_phone, your_role, your_experience, your_skills, your_linkedin, your_github, your_portfolio<br>
+          💡 <b>From each contact:</b> hr_name, company, role, email<br>
+          💡 <b>Auto-generated:</b> greeting (uses HR name if available, otherwise "Hiring Manager")
         </p>
+      </div>
+
+      <div class="card">
         <div><label class="field-label">Subject</label><input type="text" id="tpl-subject"></div>
         <div style="margin-top:12px"><label class="field-label">Body</label><textarea id="tpl-body" style="min-height:300px"></textarea></div>
         <button class="btn btn-primary" style="margin-top:12px" onclick="saveTemplate()">Save Template</button>
       </div>
 
       <div class="card" id="preview-card" style="display:none">
-        <h3 class="card-title">Preview</h3>
+        <h3 class="card-title">Preview (first contact)</h3>
         <div class="preview-box">
           <div class="preview-subject" id="preview-subject"></div>
           <pre class="preview-body" id="preview-body"></pre>
@@ -221,16 +235,32 @@
       <h2 class="section-title" style="margin-bottom:16px">Settings</h2>
 
       <div class="card">
-        <h3 class="card-title">Your Details</h3>
+        <h3 class="card-title">👤 Your Profile <span style="font-weight:400;font-size:12px;opacity:0.5">— These auto-fill into your email template</span></h3>
         <div class="form-grid">
-          <div><label class="field-label">Your Name</label><input type="text" id="s-name" placeholder="John Doe"></div>
+          <div><label class="field-label">Your Full Name *</label><input type="text" id="s-name" placeholder="Rahul Kumar"></div>
           <div><label class="field-label">Phone</label><input type="text" id="s-phone" placeholder="+91 9876543210"></div>
+          <div><label class="field-label">Current Role</label><input type="text" id="s-role" placeholder="Flutter Developer"></div>
+          <div><label class="field-label">Experience</label><input type="text" id="s-experience" placeholder="2+ years"></div>
+        </div>
+        <div style="margin-top:12px">
+          <label class="field-label">Key Skills <span style="font-weight:400;opacity:0.5">(comma separated)</span></label>
+          <input type="text" id="s-skills" placeholder="Flutter, Dart, BLoC/Provider, REST APIs, Firebase">
+        </div>
+        <div class="form-grid" style="margin-top:12px">
           <div><label class="field-label">LinkedIn</label><input type="text" id="s-linkedin" placeholder="linkedin.com/in/yourname"></div>
+          <div><label class="field-label">GitHub</label><input type="text" id="s-github" placeholder="github.com/yourname"></div>
+          <div><label class="field-label">Portfolio Website</label><input type="text" id="s-portfolio" placeholder="yourportfolio.com"></div>
         </div>
       </div>
 
+      <!-- Live variable preview -->
+      <div class="card" style="border-color:var(--blue);border-style:dashed">
+        <h3 class="card-title">🔗 Variable Preview <span style="font-weight:400;font-size:12px;opacity:0.5">— This is what goes into your template</span></h3>
+        <div id="variable-preview" style="font-family:var(--mono);font-size:13px;line-height:2;color:var(--text2)"></div>
+      </div>
+
       <div class="card">
-        <h3 class="card-title">Gmail Configuration</h3>
+        <h3 class="card-title">📧 Gmail Configuration</h3>
         <div class="info-box">
           💡 You need a Gmail App Password. Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--blue)">myaccount.google.com/apppasswords</a> → Generate one for "Mail".
         </div>
@@ -241,7 +271,7 @@
       </div>
 
       <div class="card">
-        <h3 class="card-title">Resume (PDF)</h3>
+        <h3 class="card-title">📎 Resume (PDF)</h3>
         <div style="display:flex;align-items:center;gap:12px">
           <label class="file-btn">
             📎 Choose PDF
@@ -251,7 +281,7 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      <button class="btn btn-primary" onclick="saveSettings()">💾 Save All Settings</button>
     </div>
 
     <!-- ════ SEND TAB ════ -->
@@ -339,12 +369,19 @@ async function init() {
   ]);
   const resume = await api("/resume");
 
-  // Populate fields
+  // Populate template fields
   document.getElementById("tpl-subject").value = template.subject || "";
   document.getElementById("tpl-body").value = template.body || "";
+
+  // Populate profile fields
   document.getElementById("s-name").value = userInfo.your_name || "";
   document.getElementById("s-phone").value = userInfo.your_phone || "";
+  document.getElementById("s-role").value = userInfo.your_role || "";
+  document.getElementById("s-experience").value = userInfo.your_experience || "";
+  document.getElementById("s-skills").value = userInfo.your_skills || "";
   document.getElementById("s-linkedin").value = userInfo.your_linkedin || "";
+  document.getElementById("s-github").value = userInfo.your_github || "";
+  document.getElementById("s-portfolio").value = userInfo.your_portfolio || "";
   document.getElementById("s-gmail").value = userInfo.gmail_address || "";
   if (userInfo.gmail_app_password_set) {
     document.getElementById("s-password").value = "••••••••••••••••";
@@ -352,6 +389,12 @@ async function init() {
   if (resume.has_resume) {
     document.getElementById("resume-status").innerHTML = `<span style="color:var(--green)">✓ ${resume.filename} uploaded</span>`;
   }
+
+  // Live update variable preview when profile fields change
+  const profileFields = ['s-name','s-phone','s-role','s-experience','s-skills','s-linkedin','s-github','s-portfolio'];
+  profileFields.forEach(id => {
+    document.getElementById(id).addEventListener('input', renderVariables);
+  });
 
   renderAll();
 }
@@ -361,6 +404,7 @@ function renderAll() {
   renderContacts();
   renderSendList();
   renderHistory();
+  renderVariables();
 }
 
 // ════════════════════════════════════════════
@@ -395,6 +439,58 @@ function updateStats() {
   document.getElementById("stat-contacts").textContent = contacts.length;
   document.getElementById("stat-sent").textContent = sendLog.filter(l => l.status === "sent").length;
   document.getElementById("stat-pending").textContent = contacts.filter(c => c.status === "pending").length;
+}
+
+// ════════════════════════════════════════════
+//  VARIABLE PREVIEW
+// ════════════════════════════════════════════
+function getProfileVarsFromForm() {
+  return {
+    your_name: document.getElementById("s-name").value.trim(),
+    your_phone: document.getElementById("s-phone").value.trim(),
+    your_role: document.getElementById("s-role").value.trim(),
+    your_experience: document.getElementById("s-experience").value.trim(),
+    your_skills: document.getElementById("s-skills").value.trim(),
+    your_linkedin: document.getElementById("s-linkedin").value.trim(),
+    your_github: document.getElementById("s-github").value.trim(),
+    your_portfolio: document.getElementById("s-portfolio").value.trim(),
+  };
+}
+
+function renderVariables() {
+  const vars = getProfileVarsFromForm();
+  const contactVars = { hr_name: "(from contact)", company: "(from contact)", role: "(from contact)", greeting: "(auto)" };
+  const allVars = { ...vars, ...contactVars };
+
+  // Render clickable chips on template page
+  const chipsEl = document.getElementById("variable-chips");
+  if (chipsEl) {
+    chipsEl.innerHTML = Object.entries(allVars).map(([key, val]) => {
+      const isProfile = key.startsWith("your_");
+      const isEmpty = isProfile && !val;
+      const displayVal = isProfile ? (val || "not set") : val;
+      return `<span class="var-chip ${isEmpty ? 'empty' : ''}" onclick="copyVar('${key}')" title="Click to copy {{${key}}}">
+        <span>{{${key}}}</span><span class="chip-val">→ ${displayVal}</span>
+      </span>`;
+    }).join("");
+  }
+
+  // Render preview on settings page
+  const previewEl = document.getElementById("variable-preview");
+  if (previewEl) {
+    const profileVars = Object.entries(vars);
+    previewEl.innerHTML = profileVars.map(([key, val]) => {
+      const color = val ? "var(--green)" : "var(--red)";
+      const display = val || "⚠ not set";
+      return `<span style="color:var(--text3)">{{${key}}}</span> → <span style="color:${color}">${display}</span>`;
+    }).join("<br>");
+  }
+}
+
+function copyVar(key) {
+  navigator.clipboard.writeText(`{{${key}}}`).then(() => {
+    toast(`Copied {{${key}}} — paste it in the template!`);
+  });
 }
 
 // ════════════════════════════════════════════
@@ -537,12 +633,18 @@ async function saveSettings() {
   const data = {
     your_name: document.getElementById("s-name").value.trim(),
     your_phone: document.getElementById("s-phone").value.trim(),
+    your_role: document.getElementById("s-role").value.trim(),
+    your_experience: document.getElementById("s-experience").value.trim(),
+    your_skills: document.getElementById("s-skills").value.trim(),
     your_linkedin: document.getElementById("s-linkedin").value.trim(),
+    your_github: document.getElementById("s-github").value.trim(),
+    your_portfolio: document.getElementById("s-portfolio").value.trim(),
     gmail_address: document.getElementById("s-gmail").value.trim(),
     gmail_app_password: document.getElementById("s-password").value,
   };
   await api("/user-info", { method: "PUT", body: data });
   userInfo = { ...userInfo, ...data };
+  renderVariables();
   toast("Settings saved!");
 }
 
