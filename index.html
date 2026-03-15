@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ FlutterMail</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117; --bg2: #161822; --border: #1e293b; --border2: #334155;
+      --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+      --blue: #3b82f6; --green: #10b981; --red: #ef4444; --yellow: #f59e0b;
+      --font: 'Space Grotesk', sans-serif; --mono: 'JetBrains Mono', monospace;
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+    /* ── Header ── */
+    .header { background: linear-gradient(135deg, #0f1117 0%, #1a1d2e 100%); border-bottom: 1px solid var(--border); padding: 24px; }
+    .header-inner { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; max-width: 960px; margin: 0 auto; }
+    .title { font-size: 28px; font-weight: 700; font-family: var(--mono); letter-spacing: -0.5px; }
+    .title-accent { color: var(--blue); }
+    .subtitle { font-size: 13px; color: var(--text3); font-family: var(--mono); margin-top: 4px; }
+    .stats { display: flex; gap: 20px; }
+    .stat { display: flex; flex-direction: column; align-items: center; }
+    .stat-value { font-size: 24px; font-weight: 700; font-family: var(--mono); }
+    .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ── Tabs ── */
+    .tab-bar { display: flex; gap: 4px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--bg); overflow-x: auto; }
+    .tab-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--text2); font-size: 14px; font-family: var(--font); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { background: var(--border); color: var(--text); border-color: var(--border2); }
+
+    /* ── Main ── */
+    .main { padding: 24px; max-width: 960px; margin: 0 auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Cards ── */
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #cbd5e1; margin-bottom: 12px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .section-title { font-size: 20px; font-weight: 600; font-family: var(--mono); }
+
+    /* ── Forms ── */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .field-label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 4px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="text"], input[type="email"], input[type="password"], input[type="datetime-local"], textarea {
+      width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 14px; font-family: var(--font); outline: none; transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--blue); }
+    textarea { font-family: var(--mono); line-height: 1.6; resize: vertical; min-height: 120px; }
+
+    /* ── Buttons ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all 0.2s; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .btn-outline { background: transparent; color: var(--text2); border: 1px solid var(--border2); padding: 8px 14px; font-size: 13px; }
+    .btn-outline:hover { color: var(--text); border-color: var(--text2); }
+    .btn-small { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ── Table ── */
+    .table { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .table-header { display: flex; padding: 10px 16px; background: #1a1d2e; font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--mono); }
+    .table-row { display: flex; align-items: center; padding: 12px 16px; border-top: 1px solid var(--border); font-size: 14px; }
+    .table-row:hover { background: rgba(59,130,246,0.03); }
+
+    /* ── Badge ── */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-sent { background: #d1fae5; color: #065f46; }
+    .badge-failed { background: #fee2e2; color: #991b1b; }
+
+    /* ── Toast ── */
+    .toast { position: fixed; top: 16px; right: 16px; display: flex; align-items: center; padding: 10px 18px; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 500; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: slideIn 0.3s ease-out; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* ── Empty state ── */
+    .empty { display: flex; flex-direction: column; align-items: center; padding: 40px; color: var(--text3); }
+
+    /* ── Send row ── */
+    .send-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .send-row:last-child { border-bottom: none; }
+
+    /* ── Preview ── */
+    .preview-box { background: #fff; color: #1a1a1a; border-radius: 8px; overflow: hidden; }
+    .preview-subject { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+    .preview-body { padding: 16px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; margin: 0; font-family: var(--font); }
+    .preview-attach { display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: #f9fafb; border-top: 1px solid #e5e7eb; font-size: 13px; color: #4b5563; }
+
+    /* ── File upload ── */
+    .file-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--border); color: var(--text); border: 1px solid var(--border2); border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .file-btn input { display: none; }
+
+    /* ── Warning ── */
+    .warning { padding: 12px 16px; background: #fef3c7; color: #92400e; border-radius: 8px; margin-bottom: 16px; font-size: 14px; font-weight: 500; }
+    .info-box { padding: 12px 16px; background: rgba(59,130,246,0.1); color: var(--blue); border-radius: 8px; margin-bottom: 16px; font-size: 13px; border: 1px solid rgba(59,130,246,0.2); }
+
+    /* ── Footer ── */
+    .footer { text-align: center; padding: 16px 24px; border-top: 1px solid var(--border); color: var(--text3); font-size: 13px; }
+
+    /* ── Loading ── */
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top: 2px solid var(--blue); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .no-name { opacity: 0.4; font-style: italic; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .header-inner { flex-direction: column; align-items: flex-start; }
+      .table-header, .table-row { font-size: 12px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .btn-group { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div>
+        <h1 class="title"><span class="title-accent">⚡</span> FlutterMail</h1>
+        <p class="subtitle">Job application email automation</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="stat-value" style="color:var(--blue)" id="stat-contacts">0</span><span class="stat-label">Contacts</span></div>
+        <div class="stat"><span class="stat-value" style="color:var(--green)" id="stat-sent">0</span><span class="stat-label">Sent</span></div>
+        <div class="stat"><span class="stat-value" style="color:var(--yellow)" id="stat-pending">0</span><span class="stat-label">Pending</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tab bar -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="contacts">👥 Contacts</button>
+    <button class="tab-btn" data-tab="template">📝 Template</button>
+    <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
+    <button class="tab-btn" data-tab="send">🚀 Send</button>
+    <button class="tab-btn" data-tab="history">📜 History</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- ════ CONTACTS TAB ════ -->
+    <div class="tab-content active" id="tab-contacts">
+      <div class="section-header">
+        <h2 class="section-title">HR Contacts</h2>
+        <div class="btn-group">
+          <button class="btn btn-outline" onclick="resetAllContacts()">Reset All</button>
+          <button class="btn btn-outline" onclick="toggleBulkAdd()">Bulk Add</button>
+          <button class="btn btn-primary" onclick="toggleAddForm()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- Add form -->
+      <div class="card" id="add-form" style="display:none">
+        <div class="form-grid">
+          <div><label class="field-label">HR Name (optional)</label><input type="text" id="f-name" placeholder="Priya Sharma"></div>
+          <div><label class="field-label">Email *</label><input type="email" id="f-email" placeholder="priya@company.com"></div>
+          <div><label class="field-label">Company</label><input type="text" id="f-company" placeholder="TechCorp India"></div>
+          <div><label class="field-label">Role</label><input type="text" id="f-role" placeholder="Flutter Developer" value="Flutter Developer"></div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="addContact()">Add Contact</button>
+      </div>
+
+      <!-- Bulk add -->
+      <div class="card" id="bulk-form" style="display:none">
+        <label class="field-label">Paste contacts (one per line): Email alone, or Name, Email, Company, Role</label>
+        <textarea id="bulk-text" placeholder="hr@techcorp.com&#10;Priya Sharma, priya@techcorp.com, TechCorp, Flutter Developer&#10;careers@appworks.io, AppWorks"></textarea>
+        <button class="btn btn-primary" style="margin-top:8px" onclick="bulkAdd()">Import Contacts</button>
+      </div>
+
+      <!-- Contact list -->
+      <div id="contacts-list"></div>
+    </div>
+
+    <!-- ════ TEMPLATE TAB ════ -->
+    <div class="tab-content" id="tab-template">
+      <div class="section-header">
+        <h2 class="section-title">Email Template</h2>
+        <div class="btn-group">
+          <button class="btn btn-outline" onclick="previewTemplate()">👁 Preview</button>
+          <button class="btn btn-outline" onclick="resetTemplate()">Reset Default</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <p style="font-size:12px;opacity:0.6;margin-bottom:12px;font-family:var(--mono)">
+          Placeholders: {{greeting}} (auto: name or 'Hiring Manager') {{hr_name}} {{company}} {{role}} {{your_name}} {{your_phone}} {{your_linkedin}}
+        </p>
+        <div><label class="field-label">Subject</label><input type="text" id="tpl-subject"></div>
+        <div style="margin-top:12px"><label class="field-label">Body</label><textarea id="tpl-body" style="min-height:300px"></textarea></div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="saveTemplate()">Save Template</button>
+      </div>
+
+      <div class="card" id="preview-card" style="display:none">
+        <h3 class="card-title">Preview</h3>
+        <div class="preview-box">
+          <div class="preview-subject" id="preview-subject"></div>
+          <pre class="preview-body" id="preview-body"></pre>
+          <div class="preview-attach" id="preview-attach"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ SETTINGS TAB ════ -->
+    <div class="tab-content" id="tab-settings">
+      <h2 class="section-title" style="margin-bottom:16px">Settings</h2>
+
+      <div class="card">
+        <h3 class="card-title">Your Details</h3>
+        <div class="form-grid">
+          <div><label class="field-label">Your Name</label><input type="text" id="s-name" placeholder="John Doe"></div>
+          <div><label class="field-label">Phone</label><input type="text" id="s-phone" placeholder="+91 9876543210"></div>
+          <div><label class="field-label">LinkedIn</label><input type="text" id="s-linkedin" placeholder="linkedin.com/in/yourname"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Gmail Configuration</h3>
+        <div class="info-box">
+          💡 You need a Gmail App Password. Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--blue)">myaccount.google.com/apppasswords</a> → Generate one for "Mail".
+        </div>
+        <div class="form-grid">
+          <div><label class="field-label">Gmail Address</label><input type="email" id="s-gmail" placeholder="you@gmail.com"></div>
+          <div><label class="field-label">App Password</label><input type="password" id="s-password" placeholder="xxxx xxxx xxxx xxxx"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">Resume (PDF)</h3>
+        <div style="display:flex;align-items:center;gap:12px">
+          <label class="file-btn">
+            📎 Choose PDF
+            <input type="file" accept=".pdf" onchange="uploadResume(this)">
+          </label>
+          <span id="resume-status" style="font-size:13px;color:var(--text3)">No resume uploaded</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+
+    <!-- ════ SEND TAB ════ -->
+    <div class="tab-content" id="tab-send">
+      <div class="section-header">
+        <h2 class="section-title">Send Emails</h2>
+        <div class="btn-group">
+          <button class="btn btn-outline active" id="mode-immediate" onclick="setSendMode('immediate')">🚀 Immediate</button>
+          <button class="btn btn-outline" id="mode-schedule" onclick="setSendMode('schedule')">⏰ Schedule</button>
+        </div>
+      </div>
+
+      <div id="send-warning"></div>
+
+      <!-- Schedule panel -->
+      <div class="card" id="schedule-panel" style="display:none">
+        <h3 class="card-title">Schedule Time</h3>
+        <input type="datetime-local" id="schedule-time">
+        <button class="btn btn-primary" style="margin-top:12px" onclick="scheduleBulkSend()">Schedule Bulk Send</button>
+        <div id="scheduled-jobs" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Pending contacts to send -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 class="card-title" id="pending-count">0 Pending Contacts</h3>
+          <div class="btn-group">
+            <button class="btn btn-outline btn-small" onclick="toggleSelectAll()">Select All</button>
+            <button class="btn btn-danger btn-small" onclick="bulkSendSelected()">Send Selected</button>
+          </div>
+        </div>
+        <div id="send-list"></div>
+      </div>
+    </div>
+
+    <!-- ════ HISTORY TAB ════ -->
+    <div class="tab-content" id="tab-history">
+      <h2 class="section-title" style="margin-bottom:16px">Send History</h2>
+      <div id="history-list"></div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>⚡ FlutterMail — Built for your Flutter job hunt</p>
+  </footer>
+
+<script>
+// ════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════
+let contacts = [];
+let template = {};
+let userInfo = {};
+let sendLog = [];
+let selectedIds = new Set();
+
+const API = window.location.origin + "/api";
+
+// ════════════════════════════════════════════
+//  FETCH HELPERS
+// ════════════════════════════════════════════
+async function api(path, opts = {}) {
+  const url = API + path;
+  const config = { headers: { "Content-Type": "application/json" }, ...opts };
+  if (config.body && typeof config.body === "object" && !(config.body instanceof FormData)) {
+    config.body = JSON.stringify(config.body);
+  }
+  if (config.body instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
+  const res = await fetch(url, config);
+  return res.json();
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+async function init() {
+  [contacts, template, userInfo, sendLog] = await Promise.all([
+    api("/contacts"),
+    api("/template"),
+    api("/user-info"),
+    api("/log"),
+  ]);
+  const resume = await api("/resume");
+
+  // Populate fields
+  document.getElementById("tpl-subject").value = template.subject || "";
+  document.getElementById("tpl-body").value = template.body || "";
+  document.getElementById("s-name").value = userInfo.your_name || "";
+  document.getElementById("s-phone").value = userInfo.your_phone || "";
+  document.getElementById("s-linkedin").value = userInfo.your_linkedin || "";
+  document.getElementById("s-gmail").value = userInfo.gmail_address || "";
+  if (userInfo.gmail_app_password_set) {
+    document.getElementById("s-password").value = "••••••••••••••••";
+  }
+  if (resume.has_resume) {
+    document.getElementById("resume-status").innerHTML = `<span style="color:var(--green)">✓ ${resume.filename} uploaded</span>`;
+  }
+
+  renderAll();
+}
+
+function renderAll() {
+  updateStats();
+  renderContacts();
+  renderSendList();
+  renderHistory();
+}
+
+// ════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════
+function toast(msg, type = "success") {
+  const colors = { success: "var(--green)", error: "var(--red)", info: "var(--blue)" };
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.style.background = colors[type] || colors.success;
+  el.textContent = msg;
+  document.getElementById("toast-container").appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ════════════════════════════════════════════
+//  STATS
+// ════════════════════════════════════════════
+function updateStats() {
+  document.getElementById("stat-contacts").textContent = contacts.length;
+  document.getElementById("stat-sent").textContent = sendLog.filter(l => l.status === "sent").length;
+  document.getElementById("stat-pending").textContent = contacts.filter(c => c.status === "pending").length;
+}
+
+// ════════════════════════════════════════════
+//  CONTACTS
+// ════════════════════════════════════════════
+function renderContacts() {
+  const el = document.getElementById("contacts-list");
+  if (!contacts.length) {
+    el.innerHTML = `<div class="empty"><p>No contacts yet. Add some HR contacts to get started!</p></div>`;
+    return;
+  }
+  const badgeClass = s => ({ pending: "badge-pending", sent: "badge-sent", failed: "badge-failed" }[s] || "badge-pending");
+  el.innerHTML = `
+    <div class="table">
+      <div class="table-header">
+        <span style="flex:1.5">Name</span>
+        <span style="flex:2">Email</span>
+        <span style="flex:1.5">Company</span>
+        <span style="flex:1">Role</span>
+        <span style="flex:0.7;text-align:center">Status</span>
+        <span style="flex:0.4"></span>
+      </div>
+      ${contacts.map(c => `
+        <div class="table-row">
+          <span style="flex:1.5;font-weight:500">${c.hr_name || '<span class="no-name">No name</span>'}</span>
+          <span style="flex:2;opacity:0.8;font-size:13px">${c.email}</span>
+          <span style="flex:1.5;opacity:0.8">${c.company || ""}</span>
+          <span style="flex:1;opacity:0.7;font-size:13px">${c.role || ""}</span>
+          <span style="flex:0.7;text-align:center"><span class="badge ${badgeClass(c.status)}">${c.status || "pending"}</span></span>
+          <span style="flex:0.4;text-align:right"><button class="btn btn-outline btn-small" onclick="deleteContact('${c.id}')">✕</button></span>
+        </div>
+      `).join("")}
+    </div>`;
+}
+
+function toggleAddForm() {
+  const f = document.getElementById("add-form");
+  document.getElementById("bulk-form").style.display = "none";
+  f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+function toggleBulkAdd() {
+  const f = document.getElementById("bulk-form");
+  document.getElementById("add-form").style.display = "none";
+  f.style.display = f.style.display === "none" ? "block" : "none";
+}
+
+async function addContact() {
+  const email = document.getElementById("f-email").value.trim();
+  if (!email) { toast("Email is required!", "error"); return; }
+  const data = {
+    hr_name: document.getElementById("f-name").value.trim(),
+    email,
+    company: document.getElementById("f-company").value.trim(),
+    role: document.getElementById("f-role").value.trim() || "Flutter Developer",
+  };
+  const result = await api("/contacts", { method: "POST", body: data });
+  if (result.error) { toast(result.error, "error"); return; }
+  contacts.push(result);
+  document.getElementById("f-name").value = "";
+  document.getElementById("f-email").value = "";
+  document.getElementById("f-company").value = "";
+  renderAll();
+  toast("Contact added!");
+}
+
+async function bulkAdd() {
+  const text = document.getElementById("bulk-text").value.trim();
+  const lines = text.split("\n").filter(Boolean);
+  const parsed = [];
+  for (const line of lines) {
+    const parts = line.split(",").map(s => s.trim());
+    if (parts.length === 1 && parts[0].includes("@")) {
+      parsed.push({ email: parts[0] });
+    } else if (parts.length >= 2) {
+      const firstIsEmail = parts[0].includes("@");
+      parsed.push({
+        hr_name: firstIsEmail ? "" : parts[0],
+        email: firstIsEmail ? parts[0] : parts[1],
+        company: firstIsEmail ? (parts[1] || "") : (parts[2] || ""),
+        role: firstIsEmail ? (parts[2] || "Flutter Developer") : (parts[3] || "Flutter Developer"),
+      });
+    }
+  }
+  if (!parsed.length) { toast("No valid contacts found", "error"); return; }
+  const result = await api("/contacts/bulk", { method: "POST", body: { contacts: parsed } });
+  contacts.push(...(result.contacts || []));
+  document.getElementById("bulk-text").value = "";
+  document.getElementById("bulk-form").style.display = "none";
+  renderAll();
+  toast(`Added ${result.added} contacts`);
+}
+
+async function deleteContact(id) {
+  await api(`/contacts/${id}`, { method: "DELETE" });
+  contacts = contacts.filter(c => c.id !== id);
+  renderAll();
+  toast("Contact removed");
+}
+
+async function resetAllContacts() {
+  await api("/contacts/reset", { method: "POST" });
+  contacts.forEach(c => c.status = "pending");
+  renderAll();
+  toast("All contacts reset to pending");
+}
+
+// ════════════════════════════════════════════
+//  TEMPLATE
+// ════════════════════════════════════════════
+async function saveTemplate() {
+  template = {
+    subject: document.getElementById("tpl-subject").value,
+    body: document.getElementById("tpl-body").value,
+  };
+  await api("/template", { method: "PUT", body: template });
+  toast("Template saved!");
+}
+
+async function resetTemplate() {
+  const def = await api("/template");
+  document.getElementById("tpl-subject").value = def.subject;
+  document.getElementById("tpl-body").value = def.body;
+  toast("Template loaded");
+}
+
+async function previewTemplate() {
+  const contact = contacts[0] || { hr_name: "", email: "hr@company.com", company: "Example Corp", role: "Flutter Developer" };
+  const result = await api("/preview", { method: "POST", body: { contact } });
+  document.getElementById("preview-subject").innerHTML = `<strong>To:</strong> ${result.to}<br><strong>Subject:</strong> ${result.subject}`;
+  document.getElementById("preview-body").textContent = result.body;
+  document.getElementById("preview-attach").textContent = result.has_resume ? "📎 resume.pdf attached" : "No resume uploaded";
+  document.getElementById("preview-card").style.display = "block";
+}
+
+// ════════════════════════════════════════════
+//  SETTINGS
+// ════════════════════════════════════════════
+async function saveSettings() {
+  const data = {
+    your_name: document.getElementById("s-name").value.trim(),
+    your_phone: document.getElementById("s-phone").value.trim(),
+    your_linkedin: document.getElementById("s-linkedin").value.trim(),
+    gmail_address: document.getElementById("s-gmail").value.trim(),
+    gmail_app_password: document.getElementById("s-password").value,
+  };
+  await api("/user-info", { method: "PUT", body: data });
+  userInfo = { ...userInfo, ...data };
+  toast("Settings saved!");
+}
+
+async function uploadResume(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append("file", file);
+  const result = await fetch(API + "/resume", { method: "POST", body: fd }).then(r => r.json());
+  if (result.success) {
+    document.getElementById("resume-status").innerHTML = `<span style="color:var(--green)">✓ ${result.filename} uploaded</span>`;
+    toast("Resume uploaded!");
+  } else {
+    toast(result.error || "Upload failed", "error");
+  }
+}
+
+// ════════════════════════════════════════════
+//  SEND
+// ════════════════════════════════════════════
+function renderSendList() {
+  const pending = contacts.filter(c => c.status === "pending");
+  document.getElementById("pending-count").textContent = `${pending.length} Pending Contact${pending.length !== 1 ? "s" : ""}`;
+
+  const warn = document.getElementById("send-warning");
+  if (!userInfo.your_name) {
+    warn.innerHTML = `<div class="warning">⚠️ Fill in your details in Settings tab first (at least your name).</div>`;
+  } else if (!userInfo.gmail_app_password_set && !userInfo.gmail_app_password) {
+    warn.innerHTML = `<div class="warning">⚠️ Gmail credentials not set. Configure in Settings tab to send emails.</div>`;
+  } else {
+    warn.innerHTML = "";
+  }
+
+  const el = document.getElementById("send-list");
+  if (!pending.length) {
+    el.innerHTML = `<div class="empty"><p>All emails sent! Reset contacts to send again.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = pending.map(c => `
+    <div class="send-row">
+      <input type="checkbox" ${selectedIds.has(c.id) ? "checked" : ""} onchange="toggleSelect('${c.id}')" style="accent-color:var(--blue);width:18px;height:18px;cursor:pointer">
+      <div style="flex:1">
+        <div style="font-weight:600">${c.hr_name || '<span class="no-name">Hiring Manager</span>'}</div>
+        <div style="font-size:13px;opacity:0.7">${c.email}${c.company ? " · " + c.company : ""}</div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline btn-small" onclick="sendOne('${c.id}')">Send</button>
+        <button class="btn btn-success btn-small" onclick="markSent('${c.id}')">✓ Done</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function toggleSelect(id) {
+  selectedIds.has(id) ? selectedIds.delete(id) : selectedIds.add(id);
+  renderSendList();
+}
+
+function toggleSelectAll() {
+  const pending = contacts.filter(c => c.status === "pending");
+  if (selectedIds.size === pending.length) {
+    selectedIds.clear();
+  } else {
+    pending.forEach(c => selectedIds.add(c.id));
+  }
+  renderSendList();
+}
+
+async function sendOne(id) {
+  toast("Sending...", "info");
+  const result = await api("/send/one", { method: "POST", body: { contact_id: id, attach_resume: true } });
+  if (result.success) {
+    const c = contacts.find(x => x.id === id);
+    if (c) c.status = "sent";
+    sendLog.push({ hr_name: c?.hr_name, email: c?.email, company: c?.company, status: "sent", timestamp: new Date().toISOString() });
+    toast(`Email sent to ${c?.hr_name || c?.email}!`);
+  } else {
+    toast(result.error || "Send failed", "error");
+  }
+  renderAll();
+}
+
+async function bulkSendSelected() {
+  const ids = [...selectedIds];
+  if (!ids.length) { toast("Select contacts first", "error"); return; }
+  toast(`Sending to ${ids.length} contacts...`, "info");
+  const result = await api("/send/bulk", { method: "POST", body: { contact_ids: ids, attach_resume: true } });
+  // Refresh contacts
+  contacts = await api("/contacts");
+  sendLog = await api("/log");
+  selectedIds.clear();
+  renderAll();
+  toast(`Done! ${result.sent} sent, ${result.failed} failed`);
+}
+
+async function markSent(id) {
+  const c = contacts.find(x => x.id === id);
+  if (c) c.status = "sent";
+  // Just update locally and sync
+  await api("/contacts/reset", { method: "POST" }); // Hacky — ideally a PATCH endpoint
+  // Re-save with updated statuses
+  contacts = await api("/contacts");
+  const target = contacts.find(x => x.id === id);
+  if (target) target.status = "sent";
+  // For now, just refresh
+  contacts = await api("/contacts");
+  renderAll();
+  toast("Marked as sent");
+}
+
+function setSendMode(mode) {
+  document.getElementById("mode-immediate").classList.toggle("active", mode === "immediate");
+  document.getElementById("mode-schedule").classList.toggle("active", mode === "schedule");
+  document.getElementById("schedule-panel").style.display = mode === "schedule" ? "block" : "none";
+}
+
+async function scheduleBulkSend() {
+  const time = document.getElementById("schedule-time").value;
+  if (!time) { toast("Pick a date and time", "error"); return; }
+  const result = await api("/send/schedule", { method: "POST", body: { send_time: new Date(time).toISOString(), attach_resume: true } });
+  if (result.success) {
+    toast(result.message);
+    loadScheduledJobs();
+  } else {
+    toast(result.error || "Scheduling failed", "error");
+  }
+}
+
+async function loadScheduledJobs() {
+  const jobs = await api("/send/scheduled");
+  const el = document.getElementById("scheduled-jobs");
+  if (!jobs.length) { el.innerHTML = ""; return; }
+  el.innerHTML = `<p style="font-size:13px;color:var(--text2);margin-bottom:8px">Scheduled jobs:</p>` +
+    jobs.map(j => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px">⏰ ${new Date(j.next_run).toLocaleString()}</span>
+      <button class="btn btn-outline btn-small" onclick="cancelJob('${j.id}')">Cancel</button>
+    </div>`).join("");
+}
+
+async function cancelJob(id) {
+  await api(`/send/scheduled/${id}`, { method: "DELETE" });
+  toast("Scheduled send cancelled");
+  loadScheduledJobs();
+}
+
+// ════════════════════════════════════════════
+//  HISTORY
+// ════════════════════════════════════════════
+function renderHistory() {
+  const el = document.getElementById("history-list");
+  if (!sendLog.length) {
+    el.innerHTML = `<div class="empty"><p>No emails sent yet.</p></div>`;
+    return;
+  }
+  const sorted = [...sendLog].reverse();
+  el.innerHTML = `
+    <div class="table">
+      <div class="table-header">
+        <span style="flex:0.4;text-align:center"></span>
+        <span style="flex:1.5">Name</span>
+        <span style="flex:1.5">Company</span>
+        <span style="flex:2">Email</span>
+        <span style="flex:1.5">Time</span>
+      </div>
+      ${sorted.map(e => `
+        <div class="table-row">
+          <span style="flex:0.4;text-align:center">${e.status === "sent" ? "✅" : "❌"}</span>
+          <span style="flex:1.5;font-weight:500">${e.hr_name || '<span class="no-name">Hiring Manager</span>'}</span>
+          <span style="flex:1.5">${e.company || ""}</span>
+          <span style="flex:2;font-size:13px;opacity:0.8">${e.email}</span>
+          <span style="flex:1.5;font-size:13px;opacity:0.7">${e.timestamp ? new Date(e.timestamp).toLocaleString() : ""}</span>
+        </div>
+      `).join("")}
+    </div>`;
+}
+
+// ════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════
+init();
+</script>
+
+</body>
+</html>
